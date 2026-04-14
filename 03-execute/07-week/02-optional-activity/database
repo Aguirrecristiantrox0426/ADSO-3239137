@@ -1,0 +1,207 @@
+-- =========================================
+-- BASE DE DATOS
+-- =========================================
+CREATE DATABASE sistema_comercial;
+USE sistema_comercial;
+
+-- =========================================
+-- TABLAS
+-- =========================================
+
+CREATE TABLE CONTINENTE (
+    id_continente INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100)
+);
+
+CREATE TABLE PAIS (
+    id_pais INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    id_continente INT,
+    FOREIGN KEY (id_continente) REFERENCES CONTINENTE(id_continente)
+);
+
+CREATE TABLE DEPARTAMENTO (
+    id_departamento INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    id_pais INT,
+    FOREIGN KEY (id_pais) REFERENCES PAIS(id_pais)
+);
+
+CREATE TABLE CIUDAD (
+    id_ciudad INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    id_departamento INT,
+    FOREIGN KEY (id_departamento) REFERENCES DEPARTAMENTO(id_departamento)
+);
+
+CREATE TABLE BARRIO (
+    id_barrio INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    id_ciudad INT,
+    FOREIGN KEY (id_ciudad) REFERENCES CIUDAD(id_ciudad)
+);
+
+CREATE TABLE PERSONA (
+    id_persona INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    documento VARCHAR(50),
+    email VARCHAR(100),
+    id_barrio INT,
+    FOREIGN KEY (id_barrio) REFERENCES BARRIO(id_barrio)
+);
+
+CREATE TABLE ROL (
+    id_rol INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50),
+    descripcion VARCHAR(200)
+);
+
+CREATE TABLE USUARIO (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50),
+    password VARCHAR(100),
+    id_persona INT,
+    id_rol INT,
+    FOREIGN KEY (id_persona) REFERENCES PERSONA(id_persona),
+    FOREIGN KEY (id_rol) REFERENCES ROL(id_rol)
+);
+
+CREATE TABLE CATEGORIA (
+    id_categoria INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    descripcion VARCHAR(200)
+);
+
+CREATE TABLE PRODUCTO (
+    id_producto INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100),
+    precio DECIMAL(10,2),
+    stock INT,
+    id_categoria INT,
+    FOREIGN KEY (id_categoria) REFERENCES CATEGORIA(id_categoria)
+);
+
+CREATE TABLE FACTURA (
+    id_factura INT AUTO_INCREMENT PRIMARY KEY,
+    total DECIMAL(10,2),
+    id_usuario INT,
+    id_persona INT,
+    FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario),
+    FOREIGN KEY (id_persona) REFERENCES PERSONA(id_persona)
+);
+
+CREATE TABLE DETALLE_FACTURA (
+    id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+    id_factura INT,
+    id_producto INT,
+    cantidad INT,
+    precio_unitario DECIMAL(10,2),
+    valor_total DECIMAL(10,2),
+    FOREIGN KEY (id_factura) REFERENCES FACTURA(id_factura),
+    FOREIGN KEY (id_producto) REFERENCES PRODUCTO(id_producto)
+);
+
+-- =========================================
+-- INSERTS (5 por tabla)
+-- =========================================
+
+INSERT INTO CONTINENTE (nombre) VALUES 
+('America'),('Europa'),('Asia'),('Africa'),('Oceania');
+
+INSERT INTO PAIS (nombre,id_continente) VALUES
+('Colombia',1),('Argentina',1),('España',2),('Francia',2),('China',3);
+
+INSERT INTO DEPARTAMENTO (nombre,id_pais) VALUES
+('Cundinamarca',1),('Antioquia',1),('Buenos Aires',2),('Madrid',3),('Paris',4);
+
+INSERT INTO CIUDAD (nombre,id_departamento) VALUES
+('Bogota',1),('Medellin',2),('La Plata',3),('Madrid',4),('Paris',5);
+
+INSERT INTO BARRIO (nombre,id_ciudad) VALUES
+('Centro',1),('Norte',1),('Sur',2),('Este',3),('Oeste',4);
+
+INSERT INTO PERSONA (nombre,documento,email,id_barrio) VALUES
+('Juan','123','juan@mail.com',1),
+('Ana','456','ana@mail.com',2),
+('Luis','789','luis@mail.com',3),
+('Maria','321','maria@mail.com',4),
+('Pedro','654','pedro@mail.com',5);
+
+INSERT INTO ROL (nombre,descripcion) VALUES
+('Admin','Control total'),
+('Cliente','Compra'),
+('Empleado','Gestiona ventas'),
+('Supervisor','Control'),
+('Invitado','Consulta');
+
+INSERT INTO USUARIO (username,password,id_persona,id_rol) VALUES
+('juan1','123',1,1),
+('ana1','123',2,2),
+('luis1','123',3,3),
+('maria1','123',4,2),
+('pedro1','123',5,2);
+
+INSERT INTO CATEGORIA (nombre,descripcion) VALUES
+('Tecnologia','Equipos'),
+('Ropa','Vestimenta'),
+('Hogar','Casa'),
+('Deportes','Actividad'),
+('Comida','Alimentos');
+
+INSERT INTO PRODUCTO (nombre,precio,stock,id_categoria) VALUES
+('Laptop',2000,10,1),
+('Camisa',50,20,2),
+('Silla',100,15,3),
+('Balon',30,25,4),
+('Pan',5,50,5);
+
+INSERT INTO FACTURA (total,id_usuario,id_persona) VALUES
+(2000,1,1),(50,2,2),(100,3,3),(30,4,4),(5,5,5);
+
+INSERT INTO DETALLE_FACTURA (id_factura,id_producto,cantidad,precio_unitario,valor_total) VALUES
+(1,1,1,2000,2000),
+(2,2,1,50,50),
+(3,3,1,100,100),
+(4,4,1,30,30),
+(5,5,1,5,5);
+
+-- =========================================
+-- UPDATES (2 por tabla EJEMPLO)
+-- =========================================
+
+UPDATE PERSONA SET nombre='Juan Perez' WHERE id_persona=1;
+UPDATE PERSONA SET email='nuevo@mail.com' WHERE id_persona=2;
+
+UPDATE PRODUCTO SET precio=2100 WHERE id_producto=1;
+UPDATE PRODUCTO SET stock=30 WHERE id_producto=2;
+
+-- =========================================
+-- DELETES (2 ejemplo)
+-- =========================================
+
+DELETE FROM DETALLE_FACTURA WHERE id_detalle=5;
+DELETE FROM FACTURA WHERE id_factura=5;
+
+-- =========================================
+-- SELECT (2 por entidad ejemplo clave)
+-- =========================================
+
+SELECT * FROM PERSONA WHERE nombre='Juan Perez';
+SELECT * FROM PERSONA WHERE id_barrio=1;
+
+SELECT * FROM PRODUCTO WHERE precio > 100;
+SELECT * FROM PRODUCTO WHERE stock < 20;
+
+-- =========================================
+-- INNER JOIN (OBLIGATORIO)
+-- =========================================
+
+-- 1
+SELECT f.id_factura, p.nombre, f.total
+FROM FACTURA f
+INNER JOIN PERSONA p ON f.id_persona = p.id_persona;
+
+-- 2
+SELECT d.id_detalle, pr.nombre, d.cantidad
+FROM DETALLE_FACTURA d
+INNER JOIN PRODUCTO pr ON d.id_producto = pr.id_producto;
