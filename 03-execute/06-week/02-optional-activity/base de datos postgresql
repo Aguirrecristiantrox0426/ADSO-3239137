@@ -1,0 +1,92 @@
+CREATE DATABASE biblioteca;
+
+-- TABLAS
+CREATE TABLE autores (
+    id_autor SERIAL PRIMARY KEY,
+    nombre VARCHAR(50)
+);
+
+CREATE TABLE libros (
+    id_libro SERIAL PRIMARY KEY,
+    titulo VARCHAR(50),
+    id_autor INT REFERENCES autores(id_autor)
+);
+
+CREATE TABLE usuarios (
+    id_usuario SERIAL PRIMARY KEY,
+    nombre VARCHAR(50)
+);
+
+CREATE TABLE prestamos (
+    id_prestamo SERIAL PRIMARY KEY,
+    id_usuario INT REFERENCES usuarios(id_usuario),
+    fecha DATE
+);
+
+CREATE TABLE detalle_prestamo (
+    id_detalle SERIAL PRIMARY KEY,
+    id_prestamo INT REFERENCES prestamos(id_prestamo),
+    id_libro INT REFERENCES libros(id_libro)
+);
+
+-- INSERTS
+INSERT INTO autores VALUES
+(1,'Garcia Marquez'),(2,'Cervantes'),
+(3,'Shakespeare'),(4,'Borges'),(5,'Neruda');
+
+INSERT INTO libros VALUES
+(1,'Cien años',1),(2,'Don Quijote',2),
+(3,'Hamlet',3),(4,'Ficciones',4),(5,'Poemas',5);
+
+INSERT INTO usuarios VALUES
+(1,'Carlos'),(2,'Laura'),(3,'Andres'),(4,'Sofia'),(5,'Mateo');
+
+INSERT INTO prestamos VALUES
+(1,1,'2024-01-01'),(2,2,'2024-01-02'),
+(3,3,'2024-01-03'),(4,4,'2024-01-04'),
+(5,5,'2024-01-05');
+
+INSERT INTO detalle_prestamo VALUES
+(1,1,1),(2,2,2),(3,3,3),(4,4,4),(5,5,5);
+
+-- UPDATES
+UPDATE autores SET nombre='Gabo' WHERE id_autor=1;
+UPDATE autores SET nombre='Miguel Cervantes' WHERE id_autor=2;
+
+UPDATE libros SET titulo='Cien años de soledad' WHERE id_libro=1;
+UPDATE libros SET titulo='El Quijote' WHERE id_libro=2;
+
+UPDATE usuarios SET nombre='Carlos Ruiz' WHERE id_usuario=1;
+UPDATE usuarios SET nombre='Laura Diaz' WHERE id_usuario=2;
+
+-- DELETES
+DELETE FROM detalle_prestamo WHERE id_detalle=5;
+DELETE FROM detalle_prestamo WHERE id_detalle=4;
+
+DELETE FROM prestamos WHERE id_prestamo=5;
+DELETE FROM prestamos WHERE id_prestamo=4;
+
+-- SELECT
+SELECT * FROM autores WHERE nombre LIKE 'G%';
+SELECT * FROM autores WHERE nombre LIKE '%a%';
+
+SELECT * FROM libros WHERE titulo LIKE '%o%';
+SELECT * FROM libros WHERE id_autor=1;
+
+SELECT * FROM usuarios WHERE nombre LIKE 'C%';
+SELECT * FROM usuarios WHERE nombre LIKE '%a%';
+
+SELECT * FROM prestamos WHERE fecha > '2024-01-02';
+SELECT * FROM prestamos WHERE id_usuario=1;
+
+SELECT * FROM detalle_prestamo WHERE id_libro=1;
+SELECT * FROM detalle_prestamo WHERE id_prestamo=2;
+
+-- INNER JOIN
+SELECT l.titulo, a.nombre
+FROM libros l
+INNER JOIN autores a ON l.id_autor = a.id_autor;
+
+SELECT u.nombre, p.fecha
+FROM usuarios u
+INNER JOIN prestamos p ON u.id_usuario = p.id_usuario;

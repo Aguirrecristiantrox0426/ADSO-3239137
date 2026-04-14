@@ -1,0 +1,109 @@
+CREATE DATABASE carrito_compras;
+USE carrito_compras;
+
+-- TABLAS
+CREATE TABLE clientes (
+    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50),
+    correo VARCHAR(50)
+);
+
+CREATE TABLE productos (
+    id_producto INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(50),
+    precio DECIMAL(10,2)
+);
+
+CREATE TABLE pedidos (
+    id_pedido INT AUTO_INCREMENT PRIMARY KEY,
+    id_cliente INT,
+    fecha DATE,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+CREATE TABLE detalle_pedido (
+    id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+    id_pedido INT,
+    id_producto INT,
+    cantidad INT,
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido),
+    FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
+);
+
+CREATE TABLE pagos (
+    id_pago INT AUTO_INCREMENT PRIMARY KEY,
+    id_pedido INT,
+    metodo VARCHAR(30),
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido)
+);
+
+-- INSERTS (5 por tabla)
+INSERT INTO clientes (nombre, correo) VALUES
+('Juan','juan@mail.com'),('Ana','ana@mail.com'),
+('Luis','luis@mail.com'),('Marta','marta@mail.com'),
+('Pedro','pedro@mail.com');
+
+INSERT INTO productos (nombre, precio) VALUES
+('Laptop',2000),('Mouse',50),('Teclado',80),
+('Monitor',500),('USB',20);
+
+INSERT INTO pedidos (id_cliente, fecha) VALUES
+(1,'2024-01-01'),(2,'2024-01-02'),
+(3,'2024-01-03'),(4,'2024-01-04'),
+(5,'2024-01-05');
+
+INSERT INTO detalle_pedido (id_pedido, id_producto, cantidad) VALUES
+(1,1,1),(2,2,2),(3,3,1),(4,4,1),(5,5,3);
+
+INSERT INTO pagos (id_pedido, metodo) VALUES
+(1,'Tarjeta'),(2,'Efectivo'),
+(3,'Transferencia'),(4,'Tarjeta'),
+(5,'Efectivo');
+
+-- UPDATES
+UPDATE clientes SET nombre='Juan Perez' WHERE id_cliente=1;
+UPDATE clientes SET correo='nuevo@mail.com' WHERE id_cliente=2;
+
+UPDATE productos SET precio=2100 WHERE id_producto=1;
+UPDATE productos SET precio=60 WHERE id_producto=2;
+
+UPDATE pedidos SET fecha='2024-02-01' WHERE id_pedido=1;
+UPDATE pedidos SET fecha='2024-02-02' WHERE id_pedido=2;
+
+UPDATE detalle_pedido SET cantidad=2 WHERE id_detalle=1;
+UPDATE detalle_pedido SET cantidad=4 WHERE id_detalle=5;
+
+UPDATE pagos SET metodo='Nequi' WHERE id_pago=1;
+UPDATE pagos SET metodo='Daviplata' WHERE id_pago=2;
+
+-- DELETES
+DELETE FROM pagos WHERE id_pago=5;
+DELETE FROM pagos WHERE id_pago=4;
+
+DELETE FROM detalle_pedido WHERE id_detalle=5;
+DELETE FROM detalle_pedido WHERE id_detalle=4;
+
+-- SELECT (2 por tabla)
+SELECT * FROM clientes WHERE nombre LIKE 'J%';
+SELECT * FROM clientes WHERE correo LIKE '%mail.com';
+
+SELECT * FROM productos WHERE precio > 100;
+SELECT * FROM productos WHERE nombre LIKE '%o%';
+
+SELECT * FROM pedidos WHERE fecha > '2024-01-02';
+SELECT * FROM pedidos WHERE id_cliente = 1;
+
+SELECT * FROM detalle_pedido WHERE cantidad > 1;
+SELECT * FROM detalle_pedido WHERE id_producto = 1;
+
+SELECT * FROM pagos WHERE metodo='Tarjeta';
+SELECT * FROM pagos WHERE metodo='Efectivo';
+
+-- INNER JOIN
+SELECT c.nombre, p.id_pedido
+FROM clientes c
+INNER JOIN pedidos p ON c.id_cliente = p.id_cliente;
+
+SELECT pr.nombre, d.cantidad
+FROM productos pr
+INNER JOIN detalle_pedido d ON pr.id_producto = d.id_producto;

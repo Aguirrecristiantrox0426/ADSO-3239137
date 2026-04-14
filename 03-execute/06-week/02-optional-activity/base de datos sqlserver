@@ -1,0 +1,84 @@
+CREATE DATABASE vuelos;
+GO
+USE vuelos;
+
+-- TABLAS
+CREATE TABLE aerolineas (
+    id_aerolinea INT IDENTITY PRIMARY KEY,
+    nombre VARCHAR(50)
+);
+
+CREATE TABLE aviones (
+    id_avion INT IDENTITY PRIMARY KEY,
+    modelo VARCHAR(50),
+    id_aerolinea INT FOREIGN KEY REFERENCES aerolineas(id_aerolinea)
+);
+
+CREATE TABLE pasajeros (
+    id_pasajero INT IDENTITY PRIMARY KEY,
+    nombre VARCHAR(50)
+);
+
+CREATE TABLE vuelos (
+    id_vuelo INT IDENTITY PRIMARY KEY,
+    id_avion INT FOREIGN KEY REFERENCES aviones(id_avion),
+    fecha DATE
+);
+
+CREATE TABLE reservas (
+    id_reserva INT IDENTITY PRIMARY KEY,
+    id_pasajero INT FOREIGN KEY REFERENCES pasajeros(id_pasajero),
+    id_vuelo INT FOREIGN KEY REFERENCES vuelos(id_vuelo)
+);
+
+-- INSERTS
+INSERT INTO aerolineas VALUES
+('Avianca'),('LATAM'),('Viva'),('Wingo'),('Satena');
+
+INSERT INTO aviones VALUES
+('Boeing 737',1),('Airbus A320',2),
+('Boeing 747',3),('Airbus A330',4),('ATR 72',5);
+
+INSERT INTO pasajeros VALUES
+('Juan'),('Ana'),('Luis'),('Marta'),('Pedro');
+
+INSERT INTO vuelos VALUES
+(1,'2024-01-01'),(2,'2024-01-02'),
+(3,'2024-01-03'),(4,'2024-01-04'),(5,'2024-01-05');
+
+INSERT INTO reservas VALUES
+(1,1),(2,2),(3,3),(4,4),(5,5);
+
+-- UPDATES
+UPDATE aerolineas SET nombre='Avianca SA' WHERE id_aerolinea=1;
+UPDATE aerolineas SET nombre='LATAM Airlines' WHERE id_aerolinea=2;
+
+UPDATE pasajeros SET nombre='Juan Perez' WHERE id_pasajero=1;
+UPDATE pasajeros SET nombre='Ana Lopez' WHERE id_pasajero=2;
+
+-- DELETES
+DELETE FROM reservas WHERE id_reserva=5;
+DELETE FROM reservas WHERE id_reserva=4;
+
+DELETE FROM vuelos WHERE id_vuelo=5;
+DELETE FROM vuelos WHERE id_vuelo=4;
+
+-- SELECT
+SELECT * FROM aerolineas WHERE nombre LIKE 'A%';
+SELECT * FROM aerolineas WHERE nombre LIKE '%a%';
+
+SELECT * FROM pasajeros WHERE nombre LIKE 'J%';
+SELECT * FROM pasajeros WHERE nombre LIKE '%a%';
+
+SELECT * FROM vuelos WHERE fecha > '2024-01-02';
+SELECT * FROM vuelos WHERE id_avion=1;
+
+-- INNER JOIN
+SELECT a.nombre, v.fecha
+FROM aerolineas a
+INNER JOIN aviones av ON a.id_aerolinea = av.id_aerolinea
+INNER JOIN vuelos v ON av.id_avion = v.id_avion;
+
+SELECT p.nombre, r.id_reserva
+FROM pasajeros p
+INNER JOIN reservas r ON p.id_pasajero = r.id_pasajero;
