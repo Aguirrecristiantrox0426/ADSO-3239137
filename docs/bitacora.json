@@ -1,5 +1,14 @@
 [
   {
+    "fecha": "2026-11-05",
+    "ruta": "2026-11-05-prueba-manager-library-7-informes",
+    "titulo": "Prueba Manager Library: 7 informes (anonimizado)",
+    "resumen": "18 aprendices con codigo A01-A18. Ventana 7:00-11:00 del 23-oct con 0 commits: 95 commits fueron la noche anterior, por eso los informes 1 y 2 quedan en 0.",
+    "archivos": 1,
+    "autor": "Jesús Ariel González Bonilla",
+    "creado_en": "2026-11-05T20:44:03-05:00"
+  },
+  {
     "fecha": "2026-10-19",
     "ruta": "2026-10-19-entrega-00-06",
     "titulo": "Entrega 00 a 06 y aporte (corte 19/10)",
