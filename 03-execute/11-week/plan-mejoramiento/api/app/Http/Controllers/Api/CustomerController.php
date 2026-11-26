@@ -155,4 +155,13 @@ class CustomerController extends Controller
             'errors' => [],
         ]);
     }
+
+    public function reactivate(int $id): JsonResponse
+    {
+        $customer = Customer::withTrashed()->find($id);
+        if (!$customer) return response()->json(['success'=>false,'message'=>'Customer not found.','data'=>null,'errors'=>['customer'=>['The requested customer does not exist.']]],404);
+        if (!$customer->trashed()) return response()->json(['success'=>false,'message'=>'Customer is already active.','data'=>null,'errors'=>['customer'=>['The customer is already active.']]],422);
+        $customer->restore();
+        return response()->json(['success'=>true,'message'=>'Customer reactivated successfully.','data'=>$customer->fresh(),'errors'=>[]]);
+    }
 }
