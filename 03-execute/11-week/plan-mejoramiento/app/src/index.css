@@ -1,0 +1,51 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  font-family: 'Inter', Arial, sans-serif;
+  color: #182230;
+  background: #f5f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+.login-page{min-height:100vh;display:grid;place-items:center;padding:24px;background:#f5f7fb}.login-card{width:min(100%,420px);display:grid;gap:16px;padding:36px;border:1px solid #d9e2ef;border-radius:16px;background:#fff;box-shadow:0 18px 45px #15223816}.login-card h1,.login-card p{margin:0}.login-card label{display:grid;gap:7px;font-weight:600}.login-card input{padding:11px;border:1px solid #b8c4d4;border-radius:8px}.login-error{padding:10px;background:#fff0f0;color:#a02020;border-radius:8px}
+
+::selection {
+  background: #d7e8ff;
+  color: #172b4d;
+}
