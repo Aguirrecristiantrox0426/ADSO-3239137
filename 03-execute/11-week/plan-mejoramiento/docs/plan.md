@@ -1,8 +1,9 @@
-﻿# RENT-TOOLS Implementation Plan
+﻿
+# RENT-TOOLS Implementation Plan
 
 **Project:** RENT-TOOLS  
 **Document:** Implementation Plan  
-**Version:** 1.0.0  
+**Version:** 1.1.0  
 **Status:** Draft  
 **Domain:** Construction Equipment Rental Management
 
@@ -16,6 +17,8 @@ It establishes the development phases, component responsibilities, expected deli
 
 The implementation must follow the principles established in the project constitution and the requirements defined in the software requirements specification.
 
+This plan also incorporates the authentication and role-based access control requirements established for the system. The application will support two authenticated roles: Administrator and Advisor. Customers will remain business records without system login accounts.
+
 ## 2. Implementation Objectives
 
 The implementation plan has the following objectives:
@@ -27,6 +30,9 @@ The implementation plan has the following objectives:
 - Maintain consistency between requirements, implementation, and tests.
 - Ensure that the system complies with the approved business rules.
 - Support progressive verification of project results.
+- Implement secure authentication using Laravel Sanctum.
+- Enforce role-based authorization in the backend.
+- Ensure that the frontend displays only the actions authorized for each role.
 
 ## 3. Project Organization
 
@@ -35,13 +41,15 @@ The project is organized into six main components:
 | Component | Responsibility |
 |---|---|
 | `docs/` | Requirements, architecture, technical documentation, and architectural decisions. |
-| `api/` | Laravel backend, business logic, validation, and API endpoints. |
-| `app/` | React frontend application. |
+| `api/` | Laravel backend, business logic, authentication, authorization, validation, and API endpoints. |
+| `app/` | React frontend application, login, session handling, and role-based interfaces. |
 | `page/` | Public static website. |
 | `infra/` | Docker configuration, database, and infrastructure. |
 | `tool/` | Supporting tools, automation, and data seeding through the API. |
 
 Each component must maintain its defined responsibilities and communicate through documented interfaces.
+
+The backend is responsible for validating authentication and permissions. Frontend restrictions are intended to improve the user experience and must not replace backend security controls.
 
 ## 4. Implementation Phases
 
@@ -59,6 +67,9 @@ Activities:
 - Document the API contract.
 - Organize technical tasks.
 - Record important architectural decisions through ADR documents.
+- Document the authentication strategy using Laravel Sanctum.
+- Define Administrator and Advisor permissions.
+- Establish that customers are business records and do not have authenticated accounts.
 
 Expected deliverables:
 
@@ -82,17 +93,24 @@ Activities:
 - Define database configuration.
 - Organize infrastructure files.
 - Verify that the required containers can be started using a single command.
+- Configure the database structure for authenticated users.
+- Support the Administrator and Advisor roles.
+- Configure the relationship between advisor records and user accounts where applicable.
+- Preserve customer records independently of authentication accounts.
+- Prepare storage for Laravel Sanctum authentication tokens.
 
 Expected deliverables:
 
 - Docker configuration.
 - Database configuration.
 - Database initialization resources.
+- User and role database structure.
+- Authentication token storage.
 - Infrastructure documentation.
 
 ### Phase 3: Backend API Development
 
-**Objective:** Implement the business logic and API operations.
+**Objective:** Implement the business logic, authentication, authorization, and API operations.
 
 Activities:
 
@@ -107,18 +125,28 @@ Activities:
 - Enforce all approved business rules.
 - Implement concurrency protection.
 - Document API endpoints.
+- Configure Laravel Sanctum.
+- Implement login and logout operations.
+- Protect the required API endpoints.
+- Implement Administrator and Advisor authorization rules.
+- Validate permissions independently of frontend restrictions.
+- Return appropriate HTTP status codes for authentication and authorization failures.
 
 Expected deliverables:
 
 - Laravel backend application.
 - API endpoints.
 - Business logic and validation.
+- Authentication using Laravel Sanctum.
+- Token management and revocation.
+- Role-based authorization.
+- Protected API routes.
 - Error handling.
-- Backend automated tests.
+- Backend automated tests, including authentication and authorization tests.
 
 ### Phase 4: Frontend Application Development
 
-**Objective:** Build the user interface for the system.
+**Objective:** Build the user interface for the system and integrate authentication and role-based functionality.
 
 Activities:
 
@@ -129,12 +157,22 @@ Activities:
 - Display operational information.
 - Handle successful operations and API errors.
 - Display user-facing messages in Spanish.
+- Implement the login interface.
+- Manage the authenticated session and token.
+- Retrieve and use the authenticated user's role.
+- Restrict navigation and interface actions according to the user's role.
+- Implement logout functionality.
+- Handle expired or invalid authentication sessions.
+- Ensure that the interface does not expose administrative actions to Advisors.
 
 Expected deliverables:
 
 - React application.
 - Reusable frontend components.
 - API integration.
+- Login and logout interfaces.
+- Authentication session handling.
+- Role-based navigation and interfaces.
 - User interface for the system's operational processes.
 
 ### Phase 5: Public Website Development
@@ -163,11 +201,15 @@ Activities:
 - Implement the data seeding process.
 - Use the API to insert the required initial data.
 - Verify that the seeding process works with the running application.
+- Prepare initial authenticated accounts through an authorized and controlled process.
+- Ensure that initial user accounts receive the appropriate role.
+- Avoid exposing real credentials or private information in seed data.
 
 Expected deliverables:
 
 - Supporting tools.
 - Data seeding scripts.
+- Initial account configuration where required.
 - Documentation for execution and usage.
 
 ### Phase 7: Testing and Final Verification
@@ -187,12 +229,19 @@ Activities:
 - Verify the public website.
 - Verify container startup.
 - Review project documentation.
+- Test successful and unsuccessful authentication.
+- Verify token revocation after logout.
+- Test Administrator permissions.
+- Test Advisor permissions.
+- Verify that unauthorized operations are rejected by the backend.
+- Confirm that customers do not require login accounts.
 
 Expected deliverables:
 
 - Automated test suite.
 - At least fifteen test files.
 - Verification results.
+- Authentication and authorization test results.
 - Final project documentation.
 
 ## 5. Component Dependencies
@@ -203,14 +252,18 @@ The implementation must respect the following dependencies:
 |---|---|
 | `docs/` | Approved project requirements and technical decisions. |
 | `infra/` | Database and container configuration requirements. |
-| `api/` | Data model, database, and API contract. |
-| `app/` | API contract and backend endpoints. |
+| `api/` | Data model, database, API contract, and authentication requirements. |
+| `app/` | API contract, backend endpoints, authentication, and authorization services. |
 | `page/` | Public website requirements and content. |
 | `tool/` | Running API and initial data requirements. |
 
 The backend and frontend must communicate through documented API interfaces.
 
 The supporting data seeding tools must interact with the application through the API.
+
+The frontend authentication flow depends on the backend authentication endpoints. Role-based interface behavior depends on the authenticated user's role returned by the backend.
+
+The backend authorization layer must independently enforce permissions for every protected operation.
 
 ## 6. Business Rule Implementation Priorities
 
@@ -222,8 +275,17 @@ The following rules require particular attention during development:
 4. Available inventory must remain between zero and total units.
 5. Historical rental information must remain unchanged after catalog modifications.
 6. Rental and return records must be preserved, while catalog records use logical deletion.
+7. Only Administrators can create authenticated user accounts.
+8. Only Administrators can assign or change user roles.
+9. Advisors can register and update tools but cannot deactivate them.
+10. Customers are business records and do not have authenticated accounts.
+11. Protected operations require authentication and the appropriate role.
 
-Concurrency protection must prevent multiple advisors from assigning the same last available unit. Conflicting operations must return HTTP 409 Conflict.
+Concurrency protection must prevent multiple advisors from assigning the same last available unit. Conflicting operations must return HTTP `409 Conflict`.
+
+Authentication and authorization must be enforced by the backend. Hiding buttons or navigation options in the frontend does not replace server-side permission validation.
+
+Unauthenticated requests to protected resources must return HTTP `401 Unauthorized`. Authenticated users without the required permissions must receive HTTP `403 Forbidden`.
 
 ## 7. Quality Assurance Strategy
 
@@ -239,8 +301,15 @@ The verification strategy includes:
 - Frontend integration verification.
 - Public website verification.
 - Infrastructure startup verification.
+- Authentication testing.
+- Token lifecycle and logout verification.
+- Role-based authorization testing.
+- Verification of permitted and denied operations for each role.
+- Verification that customer records do not require authentication.
 
 The project must contain at least fifteen test files.
+
+Tests must verify both successful operations and rejected operations, including attempts to access protected resources without authentication or with insufficient permissions.
 
 ## 8. Documentation and Traceability
 
@@ -254,10 +323,14 @@ The project documentation must maintain traceability between:
 - Technical tasks.
 - Implementation components.
 - Automated tests.
+- Authentication requirements.
+- Role-based authorization requirements.
 
 Architectural decisions must be recorded through at least three ADR documents.
 
 Documentation must be updated when relevant implementation decisions or requirements change.
+
+The API contract, data model, implementation tasks, and architecture documentation must remain consistent with the approved authentication and authorization model.
 
 ## 9. Version Control Strategy
 
@@ -271,6 +344,8 @@ The following practices must be maintained:
 - Create at least four commits for each of the six project subdirectories.
 - Avoid committing credentials, `.env` files, and generated dependencies.
 - Preserve published commit history.
+
+Changes to documentation, authentication, authorization, and frontend role restrictions must be recorded through meaningful commits in their respective project components.
 
 ## 10. Completion Criteria
 
@@ -286,7 +361,28 @@ The implementation will be considered complete when:
 - The infrastructure can be started using a single command.
 - At least fifteen test files are included.
 - The project documentation includes all required documents and at least three ADRs.
-- The implementation has been verified against the acceptance criteria.
+- Laravel Sanctum authentication works correctly.
+- Administrator and Advisor roles are recognized.
+- Backend authorization protects all restricted operations.
+- Customers can be registered and managed without authenticated accounts.
+- The frontend displays the appropriate interfaces according to the authenticated role.
+- Authentication and authorization tests pass.
+- The project has been verified against the acceptance criteria.
+
+## 11. Scope Restrictions
+
+The implementation must remain within the approved RENT-TOOLS scope.
+
+The initial system does not include:
+
+- Electronic payments.
+- Online payment processing.
+- Automatic payment collection.
+- Appointment scheduling.
+- Customer authentication or customer accounts.
+- Unapproved functionality outside the project requirements.
+
+Any scope modification must be reviewed and documented before implementation.
 
 ---
 
@@ -294,4 +390,4 @@ The implementation will be considered complete when:
 
 **Project:** RENT-TOOLS  
 **Document:** Implementation Plan  
-**Version:** 1.0.0
+**Version:** 1.1.0
