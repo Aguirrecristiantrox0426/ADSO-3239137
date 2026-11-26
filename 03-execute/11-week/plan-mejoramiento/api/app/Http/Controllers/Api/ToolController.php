@@ -6,16 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Tool;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ToolController extends Controller
 {
     /**
-     * Listar todas las herramientas activas.
+     * Listar herramientas activas.
      */
     public function index(): JsonResponse
     {
-        $tools = Tool::query()
+        $tools = Tool::with('category')
             ->orderBy('name')
             ->paginate(15);
 
@@ -34,11 +35,11 @@ class ToolController extends Controller
     }
 
     /**
-     * Consultar una herramienta por su ID.
+     * Consultar una herramienta por ID.
      */
     public function show(int $id): JsonResponse
     {
-        $tool = Tool::find($id);
+        $tool = Tool::with('category')->find($id);
 
         if (!$tool) {
             return response()->json([
@@ -60,17 +61,24 @@ class ToolController extends Controller
     }
 
     /**
-     * Registrar una nueva herramienta.
+     * Registrar una herramienta.
      */
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'category_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('categories', 'id')
+                    ->whereNull('deleted_at'),
+            ],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'total_quantity' => ['required', 'integer', 'min:1'],
         ]);
 
         $tool = Tool::create([
+            'category_id' => $validated['category_id'] ?? null,
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'total_quantity' => $validated['total_quantity'],
@@ -80,13 +88,13 @@ class ToolController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Herramienta registrada correctamente.',
-            'data' => $tool,
+            'data' => $tool->load('category'),
             'errors' => [],
         ], 201);
     }
 
     /**
-     * Actualizar una herramienta existente.
+     * Actualizar una herramienta.
      */
     public function update(Request $request, int $id): JsonResponse
     {
@@ -104,6 +112,13 @@ class ToolController extends Controller
         }
 
         $validated = $request->validate([
+            'category_id' => [
+                'sometimes',
+                'nullable',
+                'integer',
+                Rule::exists('categories', 'id')
+                    ->whereNull('deleted_at'),
+            ],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
             'total_quantity' => ['sometimes', 'required', 'integer', 'min:1'],
@@ -113,7 +128,6 @@ class ToolController extends Controller
             ?? $tool->total_quantity;
 
         $quantityDifference = $newTotal - $tool->total_quantity;
-
         $newAvailable = $tool->available_quantity + $quantityDifference;
 
         if ($newAvailable < 0 || $newAvailable > $newTotal) {
@@ -125,10 +139,16 @@ class ToolController extends Controller
         }
 
         $tool->fill([
+            'category_id' => array_key_exists('category_id', $validated)
+                ? $validated['category_id']
+                : $tool->category_id,
+
             'name' => $validated['name'] ?? $tool->name,
+
             'description' => array_key_exists('description', $validated)
                 ? $validated['description']
                 : $tool->description,
+
             'total_quantity' => $newTotal,
             'available_quantity' => $newAvailable,
         ]);
@@ -138,7 +158,7 @@ class ToolController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Herramienta actualizada correctamente.',
-            'data' => $tool->fresh(),
+            'data' => $tool->fresh()->load('category'),
             'errors' => [],
         ]);
     }
@@ -161,34 +181,47 @@ class ToolController extends Controller
             ], 404);
         }
 
+        if ($tool->available_quantity < $tool->total_quantity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se puede desactivar una herramienta que tiene unidades alquiladas.',
+                'data' => null,
+                'errors' => [
+                    'tool' => ['Hay unidades pendientes de devolución.'],
+                ],
+            ], 409);
+        }
+
         $tool->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Herramienta eliminada correctamente.',
+            'message' => 'Herramienta desactivada correctamente.',
             'data' => null,
             'errors' => [],
-        ], 200);
+        ]);
     }
 
     /**
-     * Consultar la disponibilidad de todas las herramientas.
+     * Consultar disponibilidad de todas las herramientas.
      */
     public function availability(): JsonResponse
     {
         $tools = Tool::query()
             ->select([
                 'id',
+                'category_id',
                 'name',
                 'total_quantity',
                 'available_quantity',
             ])
+            ->with('category:id,name')
             ->orderBy('name')
             ->paginate(15);
 
         return response()->json([
             'success' => true,
-            'message' => 'Disponibilidad de herramientas consultada correctamente.',
+            'message' => 'Disponibilidad consultada correctamente.',
             'data' => $tools->items(),
             'meta' => [
                 'current_page' => $tools->currentPage(),
@@ -201,17 +234,19 @@ class ToolController extends Controller
     }
 
     /**
-     * Consultar la disponibilidad de una herramienta específica.
+     * Consultar disponibilidad de una herramienta.
      */
     public function showAvailability(int $id): JsonResponse
     {
         $tool = Tool::query()
             ->select([
                 'id',
+                'category_id',
                 'name',
                 'total_quantity',
                 'available_quantity',
             ])
+            ->with('category:id,name')
             ->find($id);
 
         if (!$tool) {
@@ -227,7 +262,7 @@ class ToolController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Disponibilidad de la herramienta consultada correctamente.',
+            'message' => 'Disponibilidad consultada correctamente.',
             'data' => $tool,
             'errors' => [],
         ]);
