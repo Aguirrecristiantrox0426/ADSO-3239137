@@ -85,7 +85,7 @@ class RentalReturnController extends Controller
                 'exists:rentals,id',
             ],
             'advisor_id' => [
-                'required',
+                'nullable',
                 'integer',
                 'exists:advisors,id',
             ],
@@ -106,6 +106,16 @@ class RentalReturnController extends Controller
                 'min:1',
             ],
         ]);
+
+        if ($request->user()->role === 'advisor') {
+            $advisor = Advisor::query()->where('user_id', $request->user()->id)->first();
+            if (!$advisor || $advisor->trashed() || (isset($validated['advisor_id']) && (int) $validated['advisor_id'] !== $advisor->id)) {
+                return response()->json(['success' => false, 'message' => 'The authenticated advisor is not authorized for this operation.', 'data' => null, 'errors' => ['advisor' => ['The advisor identity is not authorized.']]], 403);
+            }
+            $validated['advisor_id'] = $advisor->id;
+        } elseif (empty($validated['advisor_id'])) {
+            return response()->json(['success' => false, 'message' => 'An advisor is required.', 'data' => null, 'errors' => ['advisor_id' => ['The advisor field is required.']]], 422);
+        }
 
         $result = DB::transaction(function () use ($validated) {
 
