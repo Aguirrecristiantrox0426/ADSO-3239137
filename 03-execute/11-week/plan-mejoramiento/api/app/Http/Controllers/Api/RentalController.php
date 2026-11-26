@@ -21,7 +21,7 @@ class RentalController extends Controller
      */
     public function index(): JsonResponse
     {
-        $rentals = Rental::with(['customer', 'advisor'])
+        $rentals = Rental::with(['customer', 'advisor', 'details'])
             ->orderByDesc('created_at')
             ->paginate(15);
 
@@ -48,6 +48,7 @@ class RentalController extends Controller
             'customer',
             'advisor',
             'details.tool',
+            'details.returnDetails',
             'returns.details',
         ])->find($id);
 
@@ -83,7 +84,7 @@ class RentalController extends Controller
                     ->whereNull('deleted_at'),
             ],
             'advisor_id' => [
-                'required',
+                'nullable',
                 'integer',
                 Rule::exists('advisors', 'id')
                     ->whereNull('deleted_at'),
@@ -102,6 +103,16 @@ class RentalController extends Controller
                 'min:1',
             ],
         ]);
+
+        if ($request->user()->role === 'advisor') {
+            $advisor = Advisor::query()->where('user_id', $request->user()->id)->first();
+            if (!$advisor || $advisor->trashed() || (isset($validated['advisor_id']) && (int) $validated['advisor_id'] !== $advisor->id)) {
+                return response()->json(['success' => false, 'message' => 'The authenticated advisor is not authorized for this operation.', 'data' => null, 'errors' => ['advisor' => ['The advisor identity is not authorized.']]], 403);
+            }
+            $validated['advisor_id'] = $advisor->id;
+        } elseif (empty($validated['advisor_id'])) {
+            return response()->json(['success' => false, 'message' => 'An advisor is required.', 'data' => null, 'errors' => ['advisor_id' => ['The advisor field is required.']]], 422);
+        }
 
         $result = DB::transaction(function () use ($validated) {
 
