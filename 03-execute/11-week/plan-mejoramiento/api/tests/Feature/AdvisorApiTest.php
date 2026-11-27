@@ -10,6 +10,13 @@ class AdvisorApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->authenticateAs('administrator');
+    }
+
     public function test_can_register_an_advisor(): void
     {
         $this->postJson('/api/v1/advisors', [

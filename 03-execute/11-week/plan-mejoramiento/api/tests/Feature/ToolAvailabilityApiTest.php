@@ -9,6 +9,11 @@ use Tests\TestCase;
 class ToolAvailabilityApiTest extends TestCase
 {
     use RefreshDatabase;
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->authenticateAs('administrator');
+    }
 
     public function test_can_list_tool_availability(): void
     {

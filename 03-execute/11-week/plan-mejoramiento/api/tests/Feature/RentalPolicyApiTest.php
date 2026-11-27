@@ -13,6 +13,12 @@ class RentalPolicyApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->authenticateAs('administrator');
+    }
+
     public function test_rental_due_date_is_seven_days_after_rental_date(): void
     {
         $customer = Customer::create([

@@ -10,6 +10,13 @@ class CustomerApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->authenticateAs('administrator');
+    }
+
     public function test_can_register_a_customer(): void
     {
         $this->postJson('/api/v1/customers', [
@@ -107,8 +114,6 @@ class CustomerApiTest extends TestCase
             'id' => $customer->id,
         ]);
     }
-
-    // Additional validation tests
 
     public function test_cannot_register_customer_without_full_name(): void
     {

@@ -10,6 +10,13 @@ class AdvisorValidationApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->authenticateAs('administrator');
+    }
+
     public function test_cannot_update_advisor_with_empty_full_name(): void
     {
         $advisor = Advisor::create([

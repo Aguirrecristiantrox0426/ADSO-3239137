@@ -14,6 +14,12 @@ class ReturnApiTest extends TestCase
 {
     use RefreshDatabase;
 
+      protected function setUp(): void
+    {
+        parent::setUp();
+        $this->authenticateAs('administrator');
+    }
+
     private function createRentalForReturn(): array
     {
         $customer = Customer::create([

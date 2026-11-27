@@ -13,6 +13,12 @@ class RentalApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->authenticateAs('administrator');
+    }
+
     private function createRentalParticipants(): array
     {
         $customer = Customer::create([
