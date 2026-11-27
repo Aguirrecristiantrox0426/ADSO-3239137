@@ -10,6 +10,12 @@ class ToolApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->authenticateAs('administrator');
+    }
+
     public function test_can_register_a_tool(): void
     {
         $response = $this->postJson('/api/v1/tools', [
